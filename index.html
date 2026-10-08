@@ -1,0 +1,3328 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/x-icon" href="icon.png"> 
+    <title>dplyr Cheatsheet — Interactive R Reference</title>
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --bg-primary: #f8f9fc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f2f8;
+            --bg-code: #1e293b;
+            --bg-code-header: #0f172a;
+            --bg-hover: #eef1f8;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --text-code: #e2e8f0;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #dbeafe;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --font-sans: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+            --transition: 0.2s ease;
+            --header-height: 64px;
+            --max-width: 1400px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0b1120;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a2332;
+            --bg-code: #0d1117;
+            --bg-code-header: #161b22;
+            --bg-hover: #1e293b;
+            --bg-sidebar: #111827;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-code: #e2e8f0;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --accent-light: #1e3a5f;
+            --border: #1e293b;
+            --border-light: #1a2332;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+        }
+
+        /* ===== Reset & Base ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: calc(var(--header-height) + 20px);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 15px;
+            transition: background var(--transition), color var(--transition);
+            overflow-x: hidden;
+        }
+
+        /* ===== Reading Progress ===== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s linear;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            height: var(--header-height);
+            transition: background var(--transition), border var(--transition);
+            backdrop-filter: blur(8px);
+        }
+
+        .header-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            white-space: nowrap;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .logo-text .sub {
+            font-size: 0.65rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-left: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+        }
+
+        .header-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .header-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .header-nav a:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-wrapper svg {
+            position: absolute;
+            left: 10px;
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 200px;
+            padding: 7px 12px 7px 34px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border var(--transition), box-shadow var(--transition), width var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+            width: 260px;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--transition), border var(--transition), color var(--transition);
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-icon:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .lang-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .lang-toggle button {
+            padding: 6px 12px;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition), color var(--transition);
+            font-family: var(--font-sans);
+            white-space: nowrap;
+        }
+
+        .lang-toggle button.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .lang-toggle button:not(.active):hover {
+            background: var(--bg-hover);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        /* ===== Layout ===== */
+        .layout {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            position: sticky;
+            top: calc(var(--header-height) + 20px);
+            max-height: calc(100vh - var(--header-height) - 40px);
+            overflow-y: auto;
+            padding: 20px 0;
+            scrollbar-width: thin;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .sidebar-group {
+            margin-bottom: 20px;
+        }
+
+        .sidebar-group-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            padding-left: 10px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 5px 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition), color var(--transition);
+            border-left: 2px solid transparent;
+        }
+
+        .sidebar a:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar a.active {
+            color: var(--accent);
+            background: var(--accent-light);
+            border-left-color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* ===== Main Content ===== */
+        .main {
+            padding: 32px 0 80px;
+            min-width: 0;
+        }
+
+        /* ===== Hero ===== */
+        .hero {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px 36px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-light);
+            border-radius: 50%;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid transparent;
+        }
+
+        .badge.outline {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background var(--transition), transform var(--transition);
+            font-family: var(--font-sans);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 20px;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background var(--transition), border var(--transition);
+            font-family: var(--font-sans);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        /* ===== Sections ===== */
+        .section {
+            margin-bottom: 40px;
+            scroll-margin-top: calc(var(--header-height) + 20px);
+        }
+
+        .section-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-light);
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* ===== Intro Cards ===== */
+        .intro-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .intro-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow var(--transition), border var(--transition);
+        }
+
+        .intro-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .intro-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intro-card p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        /* ===== Verb Cards ===== */
+        .verb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .verb-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: border var(--transition), box-shadow var(--transition), transform var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .verb-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .verb-card .fn-name {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .verb-card .fn-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .verb-card .fn-example {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            background: var(--bg-tertiary);
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        /* ===== Pipe Section ===== */
+        .pipe-visual {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .pipe-step {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: border var(--transition);
+        }
+
+        .pipe-step:hover {
+            border-color: var(--accent);
+        }
+
+        .pipe-arrow {
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* ===== Function Cards ===== */
+        .function-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow var(--transition), border var(--transition);
+            scroll-margin-top: calc(var(--header-height) + 20px);
+        }
+
+        .function-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .function-card.hidden {
+            display: none;
+        }
+
+        .fc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .fc-name {
+            font-family: var(--font-mono);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .fc-category {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 3px 10px;
+            border-radius: 100px;
+            background: var(--accent-light);
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .fc-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .fc-meta {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .fc-meta-item {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .fc-meta-item strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .fc-meta-item .label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* ===== Code Block ===== */
+        .code-block {
+            background: var(--bg-code);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin: 12px 0;
+            border: 1px solid var(--border);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            background: var(--bg-code-header);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .code-lang {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .code-copy {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: var(--font-sans);
+            transition: background var(--transition), color var(--transition), border var(--transition);
+        }
+
+        .code-copy:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .code-copy.copied {
+            background: #16a34a;
+            color: #fff;
+            border-color: #16a34a;
+        }
+
+        .code-body {
+            padding: 14px 16px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.65;
+            color: var(--text-code);
+            white-space: pre;
+            tab-size: 4;
+            scrollbar-width: thin;
+        }
+
+        .code-body::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-body::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.15);
+            border-radius: 3px;
+        }
+
+        /* Syntax Highlighting */
+        .tok-keyword { color: #c084fc; }
+        .tok-function { color: #60a5fa; }
+        .tok-string { color: #34d399; }
+        .tok-number { color: #fbbf24; }
+        .tok-comment { color: #64748b; font-style: italic; }
+        .tok-operator { color: #f472b6; }
+        .tok-pipe { color: #f472b6; font-weight: 700; }
+        .tok-constant { color: #fb923c; }
+
+        /* ===== Output Table ===== */
+        .output-block {
+            margin: 12px 0;
+        }
+
+        .output-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .output-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #16a34a;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .output-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .output-table th {
+            background: var(--bg-secondary);
+            font-weight: 700;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .output-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .output-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .output-table tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        /* ===== Callout ===== */
+        .callout {
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+
+        .callout-icon {
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .callout.tip {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        [data-theme="dark"] .callout.tip {
+            background: #052e16;
+            border-color: #166534;
+            color: #86efac;
+        }
+
+        .callout.warning {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            color: #854d0e;
+        }
+
+        [data-theme="dark"] .callout.warning {
+            background: #422006;
+            border-color: #854d0e;
+            color: #fde68a;
+        }
+
+        .callout.danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        [data-theme="dark"] .callout.danger {
+            background: #450a0a;
+            border-color: #991b1b;
+            color: #fca5a5;
+        }
+
+        .callout.info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        [data-theme="dark"] .callout.info {
+            background: #172554;
+            border-color: #1e40af;
+            color: #93c5fd;
+        }
+
+        /* ===== Mistakes ===== */
+        .mistake-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .mistake-card h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mistake-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mistake-wrong,
+        .mistake-correct {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .mistake-wrong .code-header {
+            background: #7f1d1d;
+        }
+
+        .mistake-correct .code-header {
+            background: #14532d;
+        }
+
+        .mistake-wrong .code-body {
+            background: #1c0a0a;
+        }
+
+        .mistake-correct .code-body {
+            background: #0a1c0e;
+        }
+
+        /* ===== Quick Reference Table ===== */
+        .ref-table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ref-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            min-width: 600px;
+        }
+
+        .ref-table thead th {
+            background: var(--bg-tertiary);
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        .ref-table tbody td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        .ref-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ref-table tbody tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .ref-table .fn {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .ref-table .code-inline {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        /* ===== Category Filter ===== */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .cat-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition), border var(--transition), color var(--transition);
+            font-family: var(--font-sans);
+            white-space: nowrap;
+        }
+
+        .cat-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .cat-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* ===== No Results ===== */
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .no-results.visible {
+            display: block;
+        }
+
+        .no-results .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .no-results p {
+            font-size: 0.95rem;
+        }
+
+        /* ===== Back to Top ===== */
+        .back-to-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity var(--transition), visibility var(--transition), transform var(--transition), background var(--transition);
+            z-index: 900;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background: var(--accent-hover);
+        }
+
+        .back-to-top:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+            padding: 40px 20px;
+            margin-top: 40px;
+            transition: background var(--transition), border var(--transition);
+        }
+
+        .footer-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-brand h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .footer-brand p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .footer-bottom {
+            max-width: var(--max-width);
+            margin: 24px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-bottom a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-bottom a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== Keyboard Shortcuts ===== */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+        }
+
+        .shortcut-item .desc {
+            color: var(--text-secondary);
+        }
+
+        kbd {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-bottom-width: 2px;
+            border-radius: 4px;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        /* ===== Group Visual ===== */
+        .group-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            margin: 14px 0;
+        }
+
+        .group-visual .step {
+            background: var(--bg-secondary);
+            padding: 6px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .group-visual .arrow {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .group-visual .groups {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .group-visual .group-tag {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* ===== Join Table ===== */
+        .join-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin: 14px 0;
+        }
+
+        .join-table th {
+            background: var(--bg-tertiary);
+            font-weight: 700;
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .join-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .join-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .join-table .join-name {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: var(--bg-secondary);
+                z-index: 999;
+                max-height: none;
+                padding: 20px;
+                border-right: 1px solid var(--border);
+                overflow-y: auto;
+            }
+
+            .sidebar.open {
+                display: block;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .header-nav {
+                display: none;
+            }
+
+            .intro-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mistake-pair {
+                grid-template-columns: 1fr;
+            }
+
+            .search-input {
+                width: 160px;
+            }
+
+            .search-input:focus {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-inner {
+                padding: 0 12px;
+                gap: 8px;
+            }
+
+            .logo-text .sub {
+                display: none;
+            }
+
+            .search-input {
+                width: 120px;
+                font-size: 0.78rem;
+                padding: 6px 8px 6px 30px;
+            }
+
+            .search-input:focus {
+                width: 160px;
+            }
+
+            .hero {
+                padding: 28px 20px;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero p {
+                font-size: 0.92rem;
+            }
+
+            .layout {
+                padding: 0 12px;
+            }
+
+            .function-card {
+                padding: 18px;
+            }
+
+            .verb-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .footer-inner {
+                flex-direction: column;
+            }
+
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .lang-toggle button {
+                padding: 5px 8px;
+                font-size: 0.72rem;
+            }
+
+            .btn-icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.3rem;
+            }
+
+            .section-title {
+                font-size: 1.15rem;
+            }
+
+            .header-actions {
+                gap: 4px;
+            }
+
+            .search-wrapper {
+                display: none;
+            }
+
+            .search-wrapper.mobile-visible {
+                display: flex;
+                position: absolute;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                padding: 8px 12px;
+                background: var(--bg-secondary);
+                border-bottom: 1px solid var(--border);
+                z-index: 998;
+            }
+
+            .search-wrapper.mobile-visible .search-input {
+                width: 100%;
+            }
+
+            .verb-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipe-visual {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pipe-arrow {
+                transform: rotate(90deg);
+                text-align: center;
+            }
+
+            .output-table {
+                font-size: 0.7rem;
+            }
+
+            .output-table th,
+            .output-table td {
+                padding: 5px 8px;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .hero {
+                padding: 20px 14px;
+            }
+
+            .hero h1 {
+                font-size: 1.15rem;
+            }
+
+            .badge {
+                font-size: 0.68rem;
+                padding: 3px 8px;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                font-size: 0.78rem;
+                padding: 7px 14px;
+            }
+        }
+
+        /* ===== Utilities ===== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+
+        ::selection {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        /* Focus */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reading Progress -->
+    <div class="progress-bar" id="progressBar" role="progressbar" aria-label="Reading progress"></div>
+
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="header-inner">
+            <button class="btn-icon mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu" aria-expanded="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
+            <a href="#overview" class="logo" aria-label="dplyr Cheatsheet Home">
+                <span class="logo-icon" aria-hidden="true">R</span>
+                <span class="logo-text">
+                    <span data-i18n="logoTitle">dplyr Cheatsheet</span>
+                    <span class="sub" data-i18n="logoSub">Data Manipulation Reference</span>
+                </span>
+            </a>
+
+            <nav class="header-nav" aria-label="Main navigation">
+                <a href="#overview" data-i18n="navOverview">Overview</a>
+                <a href="#core-verbs" data-i18n="navCore">Core Verbs</a>
+                <a href="#pipe" data-i18n="navPipe">Pipe</a>
+                <a href="#functions" data-i18n="navFunctions">Functions</a>
+                <a href="#joins" data-i18n="navJoins">Joins</a>
+                <a href="#workflow" data-i18n="navWorkflow">Workflow</a>
+                <a href="#quick-ref" data-i18n="navQuickRef">Quick Ref</a>
+            </nav>
+
+            <div class="header-actions">
+                <div class="search-wrapper" id="searchWrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Function খুঁজুন..." data-i18n-placeholder="searchPlaceholder" aria-label="Search functions" autocomplete="off" />
+                </div>
+
+                <div class="lang-toggle" role="group" aria-label="Language selection">
+                    <button id="langBn" class="active" onclick="setLanguage('bn')" aria-pressed="true">🇧🇩 বাংলা</button>
+                    <button id="langEn" onclick="setLanguage('en')" aria-pressed="false">🇬🇧 English</button>
+                </div>
+
+                <button class="btn-icon" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg id="themeIconSun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg id="themeIconMoon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar + Main Layout -->
+    <div class="layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Sidebar navigation">
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarOverview">Overview</div>
+                <a href="#overview" data-i18n="sidebarOverviewLink">Introduction</a>
+                <a href="#pipe" data-i18n="sidebarPipe">Pipe Operator</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarCore">Core Functions</div>
+                <a href="#fn-select">select()</a>
+                <a href="#fn-filter">filter()</a>
+                <a href="#fn-arrange">arrange()</a>
+                <a href="#fn-mutate">mutate()</a>
+                <a href="#fn-summarise">summarise()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarGrouping">Grouping</div>
+                <a href="#fn-group_by">group_by()</a>
+                <a href="#fn-count">count()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarRows">Rows</div>
+                <a href="#fn-slice">slice()</a>
+                <a href="#fn-distinct">distinct()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarColumns">Columns</div>
+                <a href="#fn-rename">rename()</a>
+                <a href="#fn-relocate">relocate()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarJoins">Joins</div>
+                <a href="#joins">left_join()</a>
+                <a href="#joins">inner_join()</a>
+                <a href="#joins">full_join()</a>
+                <a href="#joins">semi_join()</a>
+                <a href="#joins">anti_join()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarAdvanced">Advanced</div>
+                <a href="#fn-across">across()</a>
+                <a href="#fn-if_else">if_else()</a>
+                <a href="#fn-case_when">case_when()</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" data-i18n="sidebarMore">More</div>
+                <a href="#workflow" data-i18n="sidebarWorkflow">Real World Workflow</a>
+                <a href="#quick-ref" data-i18n="sidebarQuickRef">Quick Reference</a>
+                <a href="#mistakes" data-i18n="sidebarMistakes">Common Mistakes</a>
+                <a href="#tips" data-i18n="sidebarTips">Pro Tips</a>
+                <a href="#shortcuts" data-i18n="sidebarShortcuts">Shortcuts</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main" role="main">
+
+            <!-- Hero -->
+            <section class="hero" id="overview" aria-labelledby="heroTitle">
+                <h1 id="heroTitle" data-i18n="heroTitle">R Programming — dplyr Cheatsheet</h1>
+                <p data-i18n="heroSubtitle">R-এর সবচেয়ে গুরুত্বপূর্ণ Data Manipulation functions এক জায়গায় শিখুন।</p>
+                <div class="hero-badges">
+                    <span class="badge">📊 R Programming</span>
+                    <span class="badge">🔧 dplyr</span>
+                    <span class="badge outline">📈 Data Analysis</span>
+                    <span class="badge outline">🔄 Data Manipulation</span>
+                </div>
+                <div class="hero-cta">
+                    <a href="#functions" class="btn-primary" data-i18n="heroCta1">Explore Functions</a>
+                    <a href="#quick-ref" class="btn-secondary" data-i18n="heroCta2">Quick Reference</a>
+                </div>
+            </section>
+
+            <!-- What is dplyr -->
+            <section class="section" id="intro" aria-labelledby="introTitle">
+                <h2 class="section-title" id="introTitle">
+                    <span class="icon" aria-hidden="true">📦</span>
+                    <span data-i18n="introTitle">What is dplyr?</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="introSubtitle">R-এর সবচেয়ে জনপ্রিয় data manipulation package</p>
+
+                <div class="intro-grid">
+                    <div class="intro-card">
+                        <h3>📖 <span data-i18n="introCard1Title">Definition</span></h3>
+                        <p data-i18n="introCard1Desc">`dplyr` হলো R-এর একটি জনপ্রিয় data manipulation package, যা dataset পরিষ্কার, filter, sort, transform, summarize এবং combine করার জন্য ব্যবহৃত হয়।</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">R</span>
+                                <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                            </div>
+                            <div class="code-body"><span class="tok-function">install.packages</span>(<span class="tok-string">"dplyr"</span>)</div>
+                        </div>
+                    </div>
+                    <div class="intro-card">
+                        <h3>⚙️ <span data-i18n="introCard2Title">Loading the Package</span></h3>
+                        <p data-i18n="introCard2Desc">Use `library(dplyr)` to load the package before using any of its functions.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">R</span>
+                                <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                            </div>
+                            <div class="code-body"><span class="tok-function">library</span>(dplyr)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Core Verbs -->
+            <section class="section" id="core-verbs" aria-labelledby="coreTitle">
+                <h2 class="section-title" id="coreTitle">
+                    <span class="icon" aria-hidden="true">🧩</span>
+                    <span data-i18n="coreTitle">Core dplyr Verbs</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="coreSubtitle">The five most important functions you need to know</p>
+
+                <div class="verb-grid">
+                    <div class="verb-card" onclick="scrollToFn('fn-select')">
+                        <div class="fn-name">select()</div>
+                        <div class="fn-desc" data-i18n="verbSelectDesc">Select specific columns</div>
+                        <div class="fn-example">select(df, name, age)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-filter')">
+                        <div class="fn-name">filter()</div>
+                        <div class="fn-desc" data-i18n="verbFilterDesc">Filter rows by conditions</div>
+                        <div class="fn-example">filter(df, age &gt; 25)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-arrange')">
+                        <div class="fn-name">arrange()</div>
+                        <div class="fn-desc" data-i18n="verbArrangeDesc">Sort rows by column values</div>
+                        <div class="fn-example">arrange(df, age)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-mutate')">
+                        <div class="fn-name">mutate()</div>
+                        <div class="fn-desc" data-i18n="verbMutateDesc">Create or modify columns</div>
+                        <div class="fn-example">mutate(df, bonus = salary * 0.1)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-summarise')">
+                        <div class="fn-name">summarise()</div>
+                        <div class="fn-desc" data-i18n="verbSummariseDesc">Aggregate data into summaries</div>
+                        <div class="fn-example">summarise(df, avg = mean(x))</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-group_by')">
+                        <div class="fn-name">group_by()</div>
+                        <div class="fn-desc" data-i18n="verbGroupByDesc">Group data by categories</div>
+                        <div class="fn-example">group_by(df, dept)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-count')">
+                        <div class="fn-name">count()</div>
+                        <div class="fn-desc" data-i18n="verbCountDesc">Count observations per group</div>
+                        <div class="fn-example">count(df, dept)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-distinct')">
+                        <div class="fn-name">distinct()</div>
+                        <div class="fn-desc" data-i18n="verbDistinctDesc">Remove duplicate rows</div>
+                        <div class="fn-example">distinct(df, city)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-slice')">
+                        <div class="fn-name">slice()</div>
+                        <div class="fn-desc" data-i18n="verbSliceDesc">Select rows by position</div>
+                        <div class="fn-example">slice(df, 1:5)</div>
+                    </div>
+                    <div class="verb-card" onclick="scrollToFn('fn-rename')">
+                        <div class="fn-name">rename()</div>
+                        <div class="fn-desc" data-i18n="verbRenameDesc">Rename columns</div>
+                        <div class="fn-example">rename(df, name = full_name)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pipe Operator -->
+            <section class="section" id="pipe" aria-labelledby="pipeTitle">
+                <h2 class="section-title" id="pipeTitle">
+                    <span class="icon" aria-hidden="true">🔗</span>
+                    <span data-i18n="pipeTitle">Pipe Operator</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="pipeSubtitle">Chain multiple operations together for readable code</p>
+
+                <div class="intro-card" style="margin-bottom:20px;">
+                    <p data-i18n="pipeDesc">Pipe operator ব্যবহার করে এক function-এর output পরবর্তী function-এ পাঠানো যায়।</p>
+
+                    <div class="pipe-visual">
+                        <div class="pipe-step">Data</div>
+                        <span class="pipe-arrow">↓</span>
+                        <div class="pipe-step">filter()</div>
+                        <span class="pipe-arrow">↓</span>
+                        <div class="pipe-step">select()</div>
+                        <span class="pipe-arrow">↓</span>
+                        <div class="pipe-step">mutate()</div>
+                        <span class="pipe-arrow">↓</span>
+                        <div class="pipe-step">summarise()</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">R — Without Pipe</span>
+                            <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                        </div>
+                        <div class="code-body"><span class="tok-function">filter</span>(df, age <span class="tok-operator">&gt;</span> <span class="tok-number">25</span>)</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">R — With Pipe (|&gt;)</span>
+                            <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                        </div>
+                        <div class="code-body">df <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">filter</span>(age <span class="tok-operator">&gt;</span> <span class="tok-number">25</span>)</div>
+                    </div>
+
+                    <div class="callout info">
+                        <span class="callout-icon">💡</span>
+                        <span data-i18n="pipeTip">Modern R recommends the native pipe <code>|&gt;</code> (R 4.1+). The magrittr pipe <code>%&gt;%</code> is still widely used and works the same way.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Function Cards Container -->
+            <section class="section" id="functions" aria-labelledby="fnTitle">
+                <h2 class="section-title" id="fnTitle">
+                    <span class="icon" aria-hidden="true">📚</span>
+                    <span data-i18n="fnSectionTitle">Function Reference</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="fnSectionSubtitle">Complete dplyr function guide with examples</p>
+
+                <!-- Category Filters -->
+                <div class="category-filters" role="group" aria-label="Filter by category">
+                    <button class="cat-btn active" data-cat="all" data-i18n="catAll">All</button>
+                    <button class="cat-btn" data-cat="core" data-i18n="catCore">Core</button>
+                    <button class="cat-btn" data-cat="rows" data-i18n="catRows">Rows</button>
+                    <button class="cat-btn" data-cat="columns" data-i18n="catColumns">Columns</button>
+                    <button class="cat-btn" data-cat="transformation" data-i18n="catTransformation">Transformation</button>
+                    <button class="cat-btn" data-cat="summary" data-i18n="catSummary">Summary</button>
+                    <button class="cat-btn" data-cat="grouping" data-i18n="catGrouping">Grouping</button>
+                    <button class="cat-btn" data-cat="joins" data-i18n="catJoins">Joins</button>
+                    <button class="cat-btn" data-cat="advanced" data-i18n="catAdvanced">Advanced</button>
+                </div>
+
+                <div id="functionContainer">
+                    <!-- Function cards generated by JavaScript -->
+                </div>
+
+                <div class="no-results" id="noResults">
+                    <div class="icon" aria-hidden="true">🔍</div>
+                    <p data-i18n="noResults">No results found</p>
+                </div>
+            </section>
+
+            <!-- Joins Section -->
+            <section class="section" id="joins" aria-labelledby="joinsTitle">
+                <h2 class="section-title" id="joinsTitle">
+                    <span class="icon" aria-hidden="true">🔗</span>
+                    <span data-i18n="joinsTitle">Joins</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="joinsSubtitle">Combine two datasets based on matching keys</p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">R — left_join example</span>
+                        <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                    </div>
+                    <div class="code-body">employees <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">left_join</span>(
+        departments,
+        by <span class="tok-operator">=</span> <span class="tok-string">"department_id"</span>
+    )</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">R — Different key names</span>
+                        <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                    </div>
+                    <div class="code-body"><span class="tok-function">left_join</span>(
+    x, y,
+    by <span class="tok-operator">=</span> <span class="tok-function">c</span>(<span class="tok-string">"id"</span> <span class="tok-operator">=</span> <span class="tok-string">"employee_id"</span>)
+)</div>
+                </div>
+
+                <table class="join-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="joinColJoin">Join</th>
+                            <th data-i18n="joinColResult">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="join-name">inner_join</td><td data-i18n="joinInner">Matching rows only</td></tr>
+                        <tr><td class="join-name">left_join</td><td data-i18n="joinLeft">All rows from left</td></tr>
+                        <tr><td class="join-name">right_join</td><td data-i18n="joinRight">All rows from right</td></tr>
+                        <tr><td class="join-name">full_join</td><td data-i18n="joinFull">All rows from both</td></tr>
+                        <tr><td class="join-name">semi_join</td><td data-i18n="joinSemi">Left rows with matches</td></tr>
+                        <tr><td class="join-name">anti_join</td><td data-i18n="joinAnti">Left rows without matches</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Real World Workflow -->
+            <section class="section" id="workflow" aria-labelledby="wfTitle">
+                <h2 class="section-title" id="wfTitle">
+                    <span class="icon" aria-hidden="true">🚀</span>
+                    <span data-i18n="wfTitle">Complete Real-World Workflow</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="wfSubtitle">A practical example using multiple dplyr verbs together</p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">R — Sales Analysis Pipeline</span>
+                        <button class="code-copy" onclick="copyCode(this)" data-i18n="copy">Copy</button>
+                    </div>
+                    <div class="code-body">sales <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">filter</span>(
+        city <span class="tok-operator">==</span> <span class="tok-string">"Dhaka"</span>,
+        sales <span class="tok-operator">&gt;</span> <span class="tok-number">5000</span>
+    ) <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">mutate</span>(
+        profit <span class="tok-operator">=</span> sales <span class="tok-operator">*</span> <span class="tok-number">0.15</span>
+    ) <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">group_by</span>(category) <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">summarise</span>(
+        total_sales <span class="tok-operator">=</span> <span class="tok-function">sum</span>(sales, na.rm <span class="tok-operator">=</span> <span class="tok-constant">TRUE</span>),
+        avg_sales <span class="tok-operator">=</span> <span class="tok-function">mean</span>(sales, na.rm <span class="tok-operator">=</span> <span class="tok-constant">TRUE</span>),
+        total_profit <span class="tok-operator">=</span> <span class="tok-function">sum</span>(profit, na.rm <span class="tok-operator">=</span> <span class="tok-constant">TRUE</span>)
+    ) <span class="tok-pipe">|&gt;</span>
+    <span class="tok-function">arrange</span>(<span class="tok-function">desc</span>(total_sales))</div>
+                </div>
+
+                <div class="callout info">
+                    <span class="callout-icon">📋</span>
+                    <span data-i18n="wfSteps">Step-by-step: 1. Filter Dhaka → 2. Keep sales > 5000 → 3. Calculate profit → 4. Group by category → 5. Calculate summary → 6. Sort highest sales first</span>
+                </div>
+            </section>
+
+            <!-- Quick Reference -->
+            <section class="section" id="quick-ref" aria-labelledby="qrTitle">
+                <h2 class="section-title" id="qrTitle">
+                    <span class="icon" aria-hidden="true">📋</span>
+                    <span data-i18n="qrTitle">Quick Reference Table</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="qrSubtitle">All dplyr functions at a glance</p>
+
+                <div class="ref-table-wrapper">
+                    <table class="ref-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="qrColFunction">Function</th>
+                                <th data-i18n="qrColPurpose">Purpose</th>
+                                <th data-i18n="qrColExample">Example</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quickRefBody">
+                            <!-- Generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Common Mistakes -->
+            <section class="section" id="mistakes" aria-labelledby="mistakesTitle">
+                <h2 class="section-title" id="mistakesTitle">
+                    <span class="icon" aria-hidden="true">⚠️</span>
+                    <span data-i18n="mistakesTitle">Common dplyr Mistakes</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="mistakesSubtitle">Avoid these frequent errors</p>
+                <div id="mistakesContainer"></div>
+            </section>
+
+            <!-- Pro Tips -->
+            <section class="section" id="tips" aria-labelledby="tipsTitle">
+                <h2 class="section-title" id="tipsTitle">
+                    <span class="icon" aria-hidden="true">💡</span>
+                    <span data-i18n="tipsTitle">Pro Tips</span>
+                </h2>
+                <p class="section-subtitle" data-i18n="tipsSubtitle">Expert advice for better dplyr workflows</p>
+                <div id="tipsContainer"></div>
+            </section>
+
+            <!-- Keyboard Shortcuts -->
+            <section class="section" id="shortcuts" aria-labelledby="scTitle">
+                <h2 class="section-title" id="scTitle">
+                    <span class="icon" aria-hidden="true">⌨️</span>
+                    <span data-i18n="scTitle">Keyboard Shortcuts</span>
+                </h2>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item">
+                        <span class="desc" data-i18n="scSearch">Focus search</span>
+                        <kbd>/</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="desc" data-i18n="scClose">Clear search</span>
+                        <kbd>Esc</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="desc" data-i18n="scCopy">Copy code</span>
+                        <kbd>Ctrl + C</kbd>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer" role="contentinfo">
+                <div class="footer-inner">
+                    <div class="footer-brand">
+                        <h3 data-i18n="footerTitle">R Programming — dplyr Cheatsheet</h3>
+                        <p data-i18n="footerTagline">Learn • Practice • Analyze</p>
+                        <div class="footer-tags">
+                            <span class="badge">R</span>
+                            <span class="badge">dplyr</span>
+                            <span class="badge outline">Data Analysis</span>
+                            <span class="badge outline">বাংলা / English</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <span data-i18n="footerBuilt">Built for Data Analysis Learners</span>
+                    <a href="#" onclick="scrollToTop(); return false;" data-i18n="footerBackToTop">Back to Top ↑</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" aria-label="Back to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
+    <script>
+    /* ============================================================
+       TRANSLATIONS
+       ============================================================ */
+    const translations = {
+        bn: {
+            logoTitle: "dplyr Cheatsheet",
+            logoSub: "Data Manipulation Reference",
+            navOverview: "পরিচিতি",
+            navCore: "মূল Verbs",
+            navPipe: "Pipe",
+            navFunctions: "ফাংশন",
+            navJoins: "Joins",
+            navWorkflow: "Workflow",
+            navQuickRef: "Quick Ref",
+            searchPlaceholder: "Function বা topic খুঁজুন...",
+            copy: "কপি",
+            copied: "কপি হয়েছে",
+            noResults: "কোনো ফলাফল পাওয়া যায়নি",
+            heroTitle: "R Programming — dplyr Cheatsheet",
+            heroSubtitle: "R-এর সবচেয়ে গুরুত্বপূর্ণ Data Manipulation functions এক জায়গায় শিখুন।",
+            heroCta1: "ফাংশন দেখুন",
+            heroCta2: "Quick Reference",
+            introTitle: "dplyr কী?",
+            introSubtitle: "R-এর সবচেয়ে জনপ্রিয় data manipulation package",
+            introCard1Title: "সংজ্ঞা",
+            introCard1Desc: "dplyr হলো R-এর একটি জনপ্রিয় data manipulation package, যা dataset পরিষ্কার, filter, sort, transform, summarize এবং combine করার জন্য ব্যবহৃত হয়।",
+            introCard2Title: "Package লোড করা",
+            introCard2Desc: "যেকোনো function ব্যবহার করার আগে library(dplyr) দিয়ে package লোড করুন।",
+            coreTitle: "মূল dplyr Verbs",
+            coreSubtitle: "পাঁচটি সবচেয়ে গুরুত্বপূর্ণ function যা আপনার জানা উচিত",
+            verbSelectDesc: "নির্দিষ্ট column নির্বাচন করুন",
+            verbFilterDesc: "শর্ত অনুযায়ী row filter করুন",
+            verbArrangeDesc: "column value দিয়ে row sort করুন",
+            verbMutateDesc: "নতুন column তৈরি বা modify করুন",
+            verbSummariseDesc: "Data aggregate করে summary তৈরি করুন",
+            verbGroupByDesc: "Category অনুযায়ী data group করুন",
+            verbCountDesc: "প্রতি group-এ observation count করুন",
+            verbDistinctDesc: "Duplicate row সরান",
+            verbSliceDesc: "Position দিয়ে row নির্বাচন করুন",
+            verbRenameDesc: "Column rename করুন",
+            pipeTitle: "Pipe Operator",
+            pipeSubtitle: "একাধিক operation একসাথে chain করে readable code লিখুন",
+            pipeDesc: "Pipe operator ব্যবহার করে এক function-এর output পরবর্তী function-এ পাঠানো যায়।",
+            pipeTip: "আধুনিক R-এ native pipe |&gt; (R 4.1+) সুপারিশ করা হয়। magrittr pipe %&gt;% এখনও widely used এবং একইভাবে কাজ করে।",
+            fnSectionTitle: "Function Reference",
+            fnSectionSubtitle: "উদাহরণসহ সম্পূর্ণ dplyr function গাইড",
+            catAll: "সব",
+            catCore: "Core",
+            catRows: "Rows",
+            catColumns: "Columns",
+            catTransformation: "Transformation",
+            catSummary: "Summary",
+            catGrouping: "Grouping",
+            catJoins: "Joins",
+            catAdvanced: "Advanced",
+            joinsTitle: "Joins",
+            joinsSubtitle: "Matching keys দিয়ে দুটি dataset combine করুন",
+            joinColJoin: "Join",
+            joinColResult: "Result",
+            joinInner: "শুধু matching row",
+            joinLeft: "Left-এর সব row",
+            joinRight: "Right-এর সব row",
+            joinFull: "উভয়ের সব row",
+            joinSemi: "Match থাকা left row",
+            joinAnti: "Match নেই এমন left row",
+            wfTitle: "সম্পূর্ণ বাস্তব Workflow",
+            wfSubtitle: "একসাথে একাধিক dplyr verb ব্যবহারের ব্যবহারিক উদাহরণ",
+            wfSteps: "ধাপে ধাপে: ১. Dhaka filter → ২. sales > 5000 রাখুন → ৩. profit হিসাব → ৪. category দিয়ে group → ৫. summary হিসাব → ৬. highest sales আগে sort",
+            qrTitle: "Quick Reference Table",
+            qrSubtitle: "এক নজরে সব dplyr function",
+            qrColFunction: "Function",
+            qrColPurpose: "Purpose",
+            qrColExample: "Example",
+            mistakesTitle: "সাধারণ dplyr ভুল",
+            mistakesSubtitle: "এই ঘন ঘন হওয়া ভুলগুলো এড়িয়ে চলুন",
+            tipsTitle: "Pro Tips",
+            tipsSubtitle: "ভালো dplyr workflow-এর জন্য বিশেষজ্ঞ পরামর্শ",
+            scTitle: "Keyboard Shortcuts",
+            scSearch: "Search-এ focus",
+            scClose: "Search clear",
+            scCopy: "Code copy",
+            footerTitle: "R Programming — dplyr Cheatsheet",
+            footerTagline: "শিখুন • অনুশীলন করুন • বিশ্লেষণ করুন",
+            footerBuilt: "Data Analysis শিক্ষার্থীদের জন্য তৈরি",
+            footerBackToTop: "উপরে ফিরুন ↑",
+            sidebarOverview: "পরিচিতি",
+            sidebarOverviewLink: "Introduction",
+            sidebarPipe: "Pipe Operator",
+            sidebarCore: "মূল Functions",
+            sidebarGrouping: "Grouping",
+            sidebarRows: "Rows",
+            sidebarColumns: "Columns",
+            sidebarJoins: "Joins",
+            sidebarAdvanced: "Advanced",
+            sidebarMore: "আরও",
+            sidebarWorkflow: "বাস্তব Workflow",
+            sidebarQuickRef: "Quick Reference",
+            sidebarMistakes: "সাধারণ ভুল",
+            sidebarTips: "Pro Tips",
+            sidebarShortcuts: "Shortcuts",
+            // Function card translations
+            purposeLabel: "উদ্দেশ্য",
+            syntaxLabel: "Syntax",
+            exampleLabel: "উদাহরণ",
+            outputLabel: "Example Output",
+            whyLabel: "কেন ব্যবহার করবেন?",
+            mistakeLabel: "সাধারণ ভুল",
+            proTipLabel: "Pro Tip",
+            // Categories
+            catCoreLabel: "CORE",
+            catRowsLabel: "ROWS",
+            catColumnsLabel: "COLUMNS",
+            catTransformationLabel: "TRANSFORMATION",
+            catSummaryLabel: "SUMMARY",
+            catGroupingLabel: "GROUPING",
+            catJoinsLabel: "JOINS",
+            catAdvancedLabel: "ADVANCED",
+            // Mistakes
+            mistake1: "library(dplyr) লোড করতে ভুলে যাওয়া",
+            mistake2: "Condition-এ == এর বদলে = ব্যবহার করা",
+            mistake3: "na.rm = TRUE ভুলে যাওয়া",
+            mistake4: "ভুল pipe order",
+            mistake5: "Row এবং Column গুলিয়ে ফেলা",
+            mistake6: "ভুল join key",
+            mistake7: "Grouping না বুঝে summarise() ব্যবহার",
+            mistake8: "arrange(desc(x)) descending তা ভুলে যাওয়া",
+            mistake9: "if_else() এ incompatible data type",
+            mistake10: "mutate() দিয়ে ভুলবশত column overwrite করা",
+            // Tips
+            tip1: "Pipe operator ব্যবহার করে readable workflow তৈরি করুন।",
+            tip2: "Row-এর জন্য filter() এবং Column-এর জন্য select() ব্যবহার করুন।",
+            tip3: "Transformation-এর জন্য mutate() ব্যবহার করুন।",
+            tip4: "Grouped analysis-এর জন্য group_by() এর পরে summarise() ব্যবহার করুন।",
+            tip5: "একই transformation একাধিক column-এ apply করতে across() ব্যবহার করুন।",
+        },
+        en: {
+            logoTitle: "dplyr Cheatsheet",
+            logoSub: "Data Manipulation Reference",
+            navOverview: "Overview",
+            navCore: "Core Verbs",
+            navPipe: "Pipe",
+            navFunctions: "Functions",
+            navJoins: "Joins",
+            navWorkflow: "Workflow",
+            navQuickRef: "Quick Ref",
+            searchPlaceholder: "Search function or topic...",
+            copy: "Copy",
+            copied: "Copied",
+            noResults: "No results found",
+            heroTitle: "R Programming — dplyr Cheatsheet",
+            heroSubtitle: "Learn the most important data manipulation functions in dplyr in one place.",
+            heroCta1: "Explore Functions",
+            heroCta2: "Quick Reference",
+            introTitle: "What is dplyr?",
+            introSubtitle: "The most popular data manipulation package in R",
+            introCard1Title: "Definition",
+            introCard1Desc: "dplyr is a popular R package for manipulating, transforming, filtering, summarizing, and combining datasets.",
+            introCard2Title: "Loading the Package",
+            introCard2Desc: "Use library(dplyr) to load the package before using any of its functions.",
+            coreTitle: "Core dplyr Verbs",
+            coreSubtitle: "The five most important functions you need to know",
+            verbSelectDesc: "Select specific columns",
+            verbFilterDesc: "Filter rows by conditions",
+            verbArrangeDesc: "Sort rows by column values",
+            verbMutateDesc: "Create or modify columns",
+            verbSummariseDesc: "Aggregate data into summaries",
+            verbGroupByDesc: "Group data by categories",
+            verbCountDesc: "Count observations per group",
+            verbDistinctDesc: "Remove duplicate rows",
+            verbSliceDesc: "Select rows by position",
+            verbRenameDesc: "Rename columns",
+            pipeTitle: "Pipe Operator",
+            pipeSubtitle: "Chain multiple operations together for readable code",
+            pipeDesc: "The pipe operator lets you pass the output of one function as input to the next.",
+            pipeTip: "Modern R recommends the native pipe |&gt; (R 4.1+). The magrittr pipe %&gt;% is still widely used and works the same way.",
+            fnSectionTitle: "Function Reference",
+            fnSectionSubtitle: "Complete dplyr function guide with examples",
+            catAll: "All",
+            catCore: "Core",
+            catRows: "Rows",
+            catColumns: "Columns",
+            catTransformation: "Transformation",
+            catSummary: "Summary",
+            catGrouping: "Grouping",
+            catJoins: "Joins",
+            catAdvanced: "Advanced",
+            joinsTitle: "Joins",
+            joinsSubtitle: "Combine two datasets based on matching keys",
+            joinColJoin: "Join",
+            joinColResult: "Result",
+            joinInner: "Matching rows only",
+            joinLeft: "All rows from left",
+            joinRight: "All rows from right",
+            joinFull: "All rows from both",
+            joinSemi: "Left rows with matches",
+            joinAnti: "Left rows without matches",
+            wfTitle: "Complete Real-World Workflow",
+            wfSubtitle: "A practical example using multiple dplyr verbs together",
+            wfSteps: "Step-by-step: 1. Filter Dhaka → 2. Keep sales > 5000 → 3. Calculate profit → 4. Group by category → 5. Calculate summary → 6. Sort highest sales first",
+            qrTitle: "Quick Reference Table",
+            qrSubtitle: "All dplyr functions at a glance",
+            qrColFunction: "Function",
+            qrColPurpose: "Purpose",
+            qrColExample: "Example",
+            mistakesTitle: "Common dplyr Mistakes",
+            mistakesSubtitle: "Avoid these frequent errors",
+            tipsTitle: "Pro Tips",
+            tipsSubtitle: "Expert advice for better dplyr workflows",
+            scTitle: "Keyboard Shortcuts",
+            scSearch: "Focus search",
+            scClose: "Clear search",
+            scCopy: "Copy code",
+            footerTitle: "R Programming — dplyr Cheatsheet",
+            footerTagline: "Learn • Practice • Analyze",
+            footerBuilt: "Built for Data Analysis Learners",
+            footerBackToTop: "Back to Top ↑",
+            sidebarOverview: "Overview",
+            sidebarOverviewLink: "Introduction",
+            sidebarPipe: "Pipe Operator",
+            sidebarCore: "Core Functions",
+            sidebarGrouping: "Grouping",
+            sidebarRows: "Rows",
+            sidebarColumns: "Columns",
+            sidebarJoins: "Joins",
+            sidebarAdvanced: "Advanced",
+            sidebarMore: "More",
+            sidebarWorkflow: "Real World Workflow",
+            sidebarQuickRef: "Quick Reference",
+            sidebarMistakes: "Common Mistakes",
+            sidebarTips: "Pro Tips",
+            sidebarShortcuts: "Shortcuts",
+            purposeLabel: "Purpose",
+            syntaxLabel: "Syntax",
+            exampleLabel: "Example",
+            outputLabel: "Example Output",
+            whyLabel: "Why use it?",
+            mistakeLabel: "Common mistakes",
+            proTipLabel: "Pro Tip",
+            catCoreLabel: "CORE",
+            catRowsLabel: "ROWS",
+            catColumnsLabel: "COLUMNS",
+            catTransformationLabel: "TRANSFORMATION",
+            catSummaryLabel: "SUMMARY",
+            catGroupingLabel: "GROUPING",
+            catJoinsLabel: "JOINS",
+            catAdvancedLabel: "ADVANCED",
+            mistake1: "Forgetting to load library(dplyr)",
+            mistake2: "Using = instead of == inside conditions",
+            mistake3: "Forgetting na.rm = TRUE",
+            mistake4: "Incorrect pipe order",
+            mistake5: "Confusing rows and columns",
+            mistake6: "Incorrect join keys",
+            mistake7: "Using summarise() without understanding grouping",
+            mistake8: "Forgetting that arrange(desc(x)) is descending",
+            mistake9: "Using if_else() with incompatible data types",
+            mistake10: "Accidentally overwriting columns using mutate()",
+            tip1: "Use the pipe operator to create readable workflows.",
+            tip2: "Use filter() for rows and select() for columns.",
+            tip3: "Use mutate() for transformations.",
+            tip4: "Use summarise() after group_by() for grouped analysis.",
+            tip5: "Use across() when the same transformation needs to be applied to multiple columns.",
+        }
+    };
+
+    /* ============================================================
+       FUNCTION DATA
+       ============================================================ */
+    const functionData = [
+        {
+            id: "fn-select",
+            name: "select()",
+            category: "columns",
+            bn: {
+                description: "Dataset থেকে নির্দিষ্ট column নির্বাচন করতে select() ব্যবহার করা হয়।",
+                purpose: "Column নির্বাচন এবং exclude করা",
+                why: "বড় dataset থেকে শুধু প্রয়োজনীয় column রাখতে",
+                proTip: "starts_with(), ends_with(), contains() helper ব্যবহার করে column pattern match করুন।"
+            },
+            en: {
+                description: "Use select() to select specific columns from a dataset.",
+                purpose: "Select and exclude columns",
+                why: "Keep only necessary columns from a large dataset",
+                proTip: "Use helper functions like starts_with(), ends_with(), contains() for pattern matching."
+            },
+            syntax: "select(data, column1, column2)",
+            code: `df |> select(name, age)`,
+            examples: [
+                { label: "Basic select", code: `df |> select(name, age)` },
+                { label: "Multiple columns", code: `df |> select(name, age, salary)` },
+                { label: "Exclude column", code: `df |> select(-salary)` },
+                { label: "Range", code: `df |> select(name:salary)` }
+            ],
+            helpers: [
+                { name: "starts_with()", code: `df |> select(starts_with("sales"))` },
+                { name: "ends_with()", code: `df |> select(ends_with("_id"))` },
+                { name: "contains()", code: `df |> select(contains("name"))` },
+                { name: "matches()", code: `df |> select(matches("^s.*y$"))` },
+                { name: "everything()", code: `df |> select(salary, everything())` },
+                { name: "last_col()", code: `df |> select(1:last_col())` }
+            ],
+            output: {
+                headers: ["name", "age", "salary"],
+                rows: [
+                    ["Rahim", "28", "55000"],
+                    ["Karim", "32", "70000"],
+                    ["Fatima", "26", "48000"]
+                ]
+            }
+        },
+        {
+            id: "fn-filter",
+            name: "filter()",
+            category: "rows",
+            bn: {
+                description: "শর্ত অনুযায়ী row নির্বাচন করতে filter() ব্যবহার করা হয়।",
+                purpose: "Condition অনুযায়ী row filter করা",
+                why: "শুধু প্রয়োজনীয় data নিয়ে কাজ করতে",
+                proTip: "একাধিক value check করতে %in% ব্যবহার করুন।"
+            },
+            en: {
+                description: "Use filter() to select rows based on conditions.",
+                purpose: "Filter rows by conditions",
+                why: "Work only with the data you need",
+                proTip: "Use %in% when checking multiple values."
+            },
+            syntax: "filter(data, condition)",
+            code: `df |> filter(age > 25)`,
+            examples: [
+                { label: "Basic", code: `df |> filter(age > 25)` },
+                { label: "Multiple conditions (AND)", code: `df |> filter(age > 25, salary > 50000)` },
+                { label: "OR", code: `df |> filter(age > 25 | salary > 50000)` },
+                { label: "AND", code: `df |> filter(age > 25 & salary > 50000)` },
+                { label: "NOT", code: `df |> filter(!is.na(salary))` },
+                { label: "Multiple values", code: `df |> filter(city %in% c("Dhaka", "Chittagong"))` },
+                { label: "String match", code: `df |> filter(name == "Rahim")` }
+            ],
+            operators: [
+                { op: ">", desc: "Greater than" },
+                { op: "<", desc: "Less than" },
+                { op: ">=", desc: "Greater than or equal" },
+                { op: "<=", desc: "Less than or equal" },
+                { op: "==", desc: "Equal" },
+                { op: "!=", desc: "Not equal" }
+            ],
+            output: {
+                headers: ["name", "age", "salary"],
+                rows: [
+                    ["Rahim", "28", "55000"],
+                    ["Karim", "32", "70000"]
+                ]
+            }
+        },
+        {
+            id: "fn-arrange",
+            name: "arrange()",
+            category: "rows",
+            bn: {
+                description: "Column value অনুযায়ী row sort করতে arrange() ব্যবহার করা হয়।",
+                purpose: "Row sorting (ascending/descending)",
+                why: "Data-কে有意义ভাবে সাজাতে",
+                proTip: "desc() wrapper দিয়ে descending order পান।"
+            },
+            en: {
+                description: "Use arrange() to sort rows by column values.",
+                purpose: "Sort rows (ascending/descending)",
+                why: "Organize data meaningfully",
+                proTip: "Use desc() wrapper for descending order."
+            },
+            syntax: "arrange(data, column)",
+            code: `df |> arrange(age)`,
+            examples: [
+                { label: "Ascending", code: `df |> arrange(age)` },
+                { label: "Descending", code: `df |> arrange(desc(age))` },
+                { label: "Multiple columns", code: `df |> arrange(city, desc(salary))` }
+            ],
+            output: {
+                headers: ["name", "age", "salary"],
+                rows: [
+                    ["Fatima", "26", "48000"],
+                    ["Rahim", "28", "55000"],
+                    ["Karim", "32", "70000"]
+                ]
+            }
+        },
+        {
+            id: "fn-mutate",
+            name: "mutate()",
+            category: "transformation",
+            bn: {
+                description: "নতুন column তৈরি বা existing column modify করতে mutate() ব্যবহার করা হয়।",
+                purpose: "Column তৈরি, update এবং transform করা",
+                why: "Calculated এবং conditional column যোগ করতে",
+                proTip: "if_else() বা case_when() দিয়ে conditional column তৈরি করুন।"
+            },
+            en: {
+                description: "Use mutate() to create new columns or modify existing ones.",
+                purpose: "Create, update, and transform columns",
+                why: "Add calculated and conditional columns",
+                proTip: "Use if_else() or case_when() for conditional columns."
+            },
+            syntax: "mutate(data, new_col = expression)",
+            code: `df |> mutate(bonus = salary * 0.10)`,
+            examples: [
+                { label: "Basic", code: `df |> mutate(\n    bonus = salary * 0.10\n)` },
+                { label: "Multiple columns", code: `df |> mutate(\n    bonus = salary * 0.10,\n    total_salary = salary + bonus\n)` },
+                { label: "Conditional", code: `df |> mutate(\n    category = if_else(\n        salary >= 50000,\n        "High",\n        "Low"\n    )\n)` }
+            ],
+            output: {
+                headers: ["name", "salary", "bonus"],
+                rows: [
+                    ["Rahim", "55000", "5500"],
+                    ["Karim", "70000", "7000"],
+                    ["Fatima", "48000", "4800"]
+                ]
+            }
+        },
+        {
+            id: "fn-summarise",
+            name: "summarise()",
+            category: "summary",
+            bn: {
+                description: "Data aggregate করে summary statistics তৈরি করতে summarise() ব্যবহার করা হয়।",
+                purpose: "Summary statistics তৈরি করা",
+                why: "Data-এর সারসংক্ষেপ পেতে",
+                proTip: "Grouped analysis-এর জন্য group_by() এর সাথে combine করুন।"
+            },
+            en: {
+                description: "Use summarise() to aggregate data into summary statistics.",
+                purpose: "Create summary statistics",
+                why: "Get an overview of your data",
+                proTip: "Combine with group_by() for grouped analysis."
+            },
+            syntax: "summarise(data, summary = function(column))",
+            code: `df |> summarise(\n    average_salary = mean(salary, na.rm = TRUE)\n)`,
+            examples: [
+                { label: "Basic", code: `df |> summarise(\n    average_salary = mean(salary, na.rm = TRUE)\n)` },
+                { label: "Multiple summaries", code: `df |> summarise(\n    average_salary = mean(salary, na.rm = TRUE),\n    maximum_salary = max(salary, na.rm = TRUE),\n    minimum_salary = min(salary, na.rm = TRUE)\n)` }
+            ],
+            aggFunctions: ["mean()", "median()", "sum()", "min()", "max()", "sd()", "n()", "n_distinct()"],
+            output: {
+                headers: ["average_salary"],
+                rows: [
+                    ["57667"]
+                ]
+            }
+        },
+        {
+            id: "fn-group_by",
+            name: "group_by()",
+            category: "grouping",
+            bn: {
+                description: "group_by() dataset-কে নির্দিষ্ট category অনুযায়ী group করে।",
+                purpose: "Data-কে category অনুযায়ী group করা",
+                why: "প্রতি group-এর আলাদা analysis করতে",
+                proTip: "Grouped analysis-এর পরে ungroup() করতে ভুলবেন না।"
+            },
+            en: {
+                description: "Use group_by() to group data by specified categories.",
+                purpose: "Group data by categories",
+                why: "Perform separate analysis per group",
+                proTip: "Don't forget to ungroup() after grouped analysis."
+            },
+            syntax: "group_by(data, column)",
+            code: `df |>\n    group_by(department) |>\n    summarise(\n        avg_salary = mean(salary, na.rm = TRUE)\n    )`,
+            examples: [
+                { label: "Basic grouping", code: `df |>\n    group_by(department) |>\n    summarise(\n        avg_salary = mean(salary, na.rm = TRUE)\n    )` }
+            ],
+            output: {
+                headers: ["department", "avg_salary"],
+                rows: [
+                    ["HR", "48000"],
+                    ["IT", "72000"],
+                    ["Finance", "65000"]
+                ]
+            }
+        },
+        {
+            id: "fn-count",
+            name: "count()",
+            category: "grouping",
+            bn: {
+                description: "প্রতি group-এ observation count করতে count() ব্যবহার করা হয়।",
+                purpose: "Group-wise observation count",
+                why: "Frequency distribution দেখতে",
+                proTip: "sort = TRUE দিয়ে descending order পান।"
+            },
+            en: {
+                description: "Use count() to count observations per group.",
+                purpose: "Count observations per group",
+                why: "See frequency distribution",
+                proTip: "Use sort = TRUE for descending order."
+            },
+            syntax: "count(data, column)",
+            code: `df |> count(department)`,
+            examples: [
+                { label: "Basic count", code: `df |> count(department)` },
+                { label: "Sorted count", code: `df |> count(department, sort = TRUE)` }
+            ],
+            output: {
+                headers: ["department", "n"],
+                rows: [
+                    ["IT", "12"],
+                    ["HR", "8"],
+                    ["Finance", "6"],
+                    ["Marketing", "4"]
+                ]
+            }
+        },
+        {
+            id: "fn-distinct",
+            name: "distinct()",
+            category: "rows",
+            bn: {
+                description: "Duplicate row সরাতে distinct() ব্যবহার করা হয়।",
+                purpose: "Duplicate row remove করা",
+                why: "Unique value বা combination দেখতে",
+                proTip: ".keep_all = TRUE দিয়ে duplicate detect করুন।"
+            },
+            en: {
+                description: "Use distinct() to remove duplicate rows.",
+                purpose: "Remove duplicate rows",
+                why: "See unique values or combinations",
+                proTip: "Use .keep_all = TRUE to detect duplicates."
+            },
+            syntax: "distinct(data, column)",
+            code: `df |> distinct(city)`,
+            examples: [
+                { label: "Single column", code: `df |> distinct(city)` },
+                { label: "Multiple columns", code: `df |> distinct(city, department)` }
+            ],
+            output: {
+                headers: ["city"],
+                rows: [
+                    ["Dhaka"],
+                    ["Chittagong"],
+                    ["Sylhet"]
+                ]
+            }
+        },
+        {
+            id: "fn-rename",
+            name: "rename()",
+            category: "columns",
+            bn: {
+                description: "Column rename করতে rename() ব্যবহার করা হয়।",
+                purpose: "Column-এর নাম পরিবর্তন করা",
+                why: "Column name পরিষ্কার এবং readable করতে",
+                proTip: "নতুন নাম = পুরোনো নাম — এই order মনে রাখুন।"
+            },
+            en: {
+                description: "Use rename() to rename columns.",
+                purpose: "Rename columns",
+                why: "Make column names clean and readable",
+                proTip: "Remember the order: new_name = old_name."
+            },
+            syntax: "rename(data, new_name = old_name)",
+            code: `df |> rename(\n    employee_name = name\n)`,
+            examples: [
+                { label: "Basic rename", code: `df |> rename(\n    employee_name = name\n)` }
+            ],
+            output: {
+                headers: ["employee_name", "age", "salary"],
+                rows: [
+                    ["Rahim", "28", "55000"],
+                    ["Karim", "32", "70000"]
+                ]
+            }
+        },
+        {
+            id: "fn-slice",
+            name: "slice()",
+            category: "rows",
+            bn: {
+                description: "Position দিয়ে row নির্বাচন করতে slice() ব্যবহার করা হয়।",
+                purpose: "Row position দিয়ে select করা",
+                why: "নির্দিষ্ট row বা range বের করতে",
+                proTip: "slice_head(), slice_tail(), slice_max() দিয়ে আরও specific selection করুন।"
+            },
+            en: {
+                description: "Use slice() to select rows by position.",
+                purpose: "Select rows by position",
+                why: "Extract specific rows or ranges",
+                proTip: "Use slice_head(), slice_tail(), slice_max() for more specific selection."
+            },
+            syntax: "slice(data, rows)",
+            code: `df |> slice(1:5)`,
+            examples: [
+                { label: "Range", code: `df |> slice(1:5)` },
+                { label: "First n rows", code: `df |> slice_head(n = 5)` },
+                { label: "Last n rows", code: `df |> slice_tail(n = 5)` },
+                { label: "Random sample", code: `df |> slice_sample(n = 5)` },
+                { label: "Top values", code: `df |> slice_max(salary, n = 5)` },
+                { label: "Bottom values", code: `df |> slice_min(salary, n = 5)` }
+            ],
+            output: {
+                headers: ["name", "age", "salary"],
+                rows: [
+                    ["Rahim", "28", "55000"],
+                    ["Karim", "32", "70000"],
+                    ["Fatima", "26", "48000"],
+                    ["Nadia", "30", "62000"],
+                    ["Omar", "35", "78000"]
+                ]
+            }
+        },
+        {
+            id: "fn-across",
+            name: "across()",
+            category: "advanced",
+            bn: {
+                description: "একই transformation একাধিক column-এর উপর apply করতে across() ব্যবহার করা যায়।",
+                purpose: "Multiple column-এ একই operation apply করা",
+                why: "Repetitive code কমাতে",
+                proTip: "where(is.numeric) দিয়ে column type অনুযায়ী select করুন।"
+            },
+            en: {
+                description: "Use across() to apply the same transformation to multiple columns.",
+                purpose: "Apply same operation across multiple columns",
+                why: "Reduce repetitive code",
+                proTip: "Use where(is.numeric) to select columns by type."
+            },
+            syntax: "across(columns, function)",
+            code: `df |>\n    summarise(\n        across(\n            where(is.numeric),\n            mean,\n            na.rm = TRUE\n        )\n    )`,
+            examples: [
+                { label: "Summarise across", code: `df |>\n    summarise(\n        across(\n            where(is.numeric),\n            mean,\n            na.rm = TRUE\n        )\n    )` },
+                { label: "Mutate across", code: `df |>\n    mutate(\n        across(\n            c(salary, bonus),\n            ~ .x * 1.10\n        )\n    )` }
+            ],
+            output: {
+                headers: ["age", "salary", "bonus"],
+                rows: [
+                    ["30.2", "57667", "5766"]
+                ]
+            }
+        },
+        {
+            id: "fn-if_else",
+            name: "if_else()",
+            category: "advanced",
+            bn: {
+                description: "Vectorized conditional operation-এর জন্য if_else() ব্যবহার করা হয়।",
+                purpose: "Condition-এর উপর ভিত্তি করে value return করা",
+                why: "ifelse() এর চেয়ে type-safe এবং faster",
+                proTip: "true এবং false value একই type-এর হতে হবে।"
+            },
+            en: {
+                description: "Use if_else() for vectorized conditional operations.",
+                purpose: "Return values based on conditions",
+                why: "Type-safe and faster than ifelse()",
+                proTip: "Both true and false values must be the same type."
+            },
+            syntax: "if_else(condition, true_value, false_value)",
+            code: `df |>\n    mutate(\n        status = if_else(\n            salary >= 50000,\n            "High",\n            "Low"\n        )\n    )`,
+            examples: [
+                { label: "Basic if_else", code: `df |>\n    mutate(\n        status = if_else(\n            salary >= 50000,\n            "High",\n            "Low"\n        )\n    )` }
+            ],
+            output: {
+                headers: ["name", "salary", "status"],
+                rows: [
+                    ["Rahim", "55000", "High"],
+                    ["Fatima", "48000", "Low"]
+                ]
+            }
+        },
+        {
+            id: "fn-case_when",
+            name: "case_when()",
+            category: "advanced",
+            bn: {
+                description: "একাধিক condition handle করার জন্য case_when() খুব useful।",
+                purpose: "Multiple condition-এর ভিত্তিতে value assign করা",
+                why: "Complex if-else chain সহজ করে",
+                proTip: "সবসময় শেষে TRUE ~ \u0022default\u0022 রাখুন।"
+            },
+            en: {
+                description: "Use case_when() to handle multiple conditions elegantly.",
+                purpose: "Assign values based on multiple conditions",
+                why: "Simplifies complex if-else chains",
+                proTip: "Always include TRUE ~ \u0022default\u0022 at the end."
+            },
+            syntax: "case_when(condition1 ~ value1, condition2 ~ value2, ...)",
+            code: `df |>\n    mutate(\n        category = case_when(\n            salary >= 80000 ~ "High",\n            salary >= 50000 ~ "Medium",\n            TRUE ~ "Low"\n        )\n    )`,
+            examples: [
+                { label: "Basic case_when", code: `df |>\n    mutate(\n        category = case_when(\n            salary >= 80000 ~ "High",\n            salary >= 50000 ~ "Medium",\n            TRUE ~ "Low"\n        )\n    )` }
+            ],
+            output: {
+                headers: ["name", "salary", "category"],
+                rows: [
+                    ["Karim", "70000", "Medium"],
+                    ["Omar", "85000", "High"],
+                    ["Fatima", "48000", "Low"]
+                ]
+            }
+        },
+        {
+            id: "fn-relocate",
+            name: "relocate()",
+            category: "columns",
+            bn: {
+                description: "Column-এর position পরিবর্তন করতে relocate() ব্যবহার করা হয়।",
+                purpose: "Column position পরিবর্তন করা",
+                why: "Important column সামনে আনতে",
+                proTip: ".before বা .after argument ব্যবহার করুন।"
+            },
+            en: {
+                description: "Use relocate() to change column positions.",
+                purpose: "Change column positions",
+                why: "Bring important columns to the front",
+                proTip: "Use .before or .after arguments."
+            },
+            syntax: "relocate(data, column, .before = other)",
+            code: `df |> relocate(salary, .before = name)`,
+            examples: [
+                { label: "Move to front", code: `df |> relocate(salary, .before = name)` },
+                { label: "Move to end", code: `df |> relocate(name, .after = salary)` }
+            ],
+            output: {
+                headers: ["salary", "name", "age"],
+                rows: [
+                    ["55000", "Rahim", "28"],
+                    ["70000", "Karim", "32"]
+                ]
+            }
+        }
+    ];
+
+    /* ============================================================
+       MISTAKES DATA
+       ============================================================ */
+    const mistakesData = [
+        { wrong: `filter(df, age = 25)`, correct: `filter(df, age == 25)`, key: "mistake2" },
+        { wrong: `summarise(df, avg = mean(x))`, correct: `summarise(df, avg = mean(x, na.rm = TRUE))`, key: "mistake3" },
+        { wrong: `df |> select(name) |> filter(age > 25)`, correct: `df |> filter(age > 25) |> select(name)`, key: "mistake4" },
+        { wrong: `left_join(x, y, by = "id")`, correct: `left_join(x, y, by = c("id" = "employee_id"))`, key: "mistake6" },
+        { wrong: `if_else(x > 5, "yes", 0)`, correct: `if_else(x > 5, "yes", "no")`, key: "mistake9" }
+    ];
+
+    /* ============================================================
+       TIPS DATA
+       ============================================================ */
+    const tipsData = [
+        { num: "01", key: "tip1" },
+        { num: "02", key: "tip2" },
+        { num: "03", key: "tip3" },
+        { num: "04", key: "tip4" },
+        { num: "05", key: "tip5" }
+    ];
+
+    /* ============================================================
+       QUICK REFERENCE DATA
+       ============================================================ */
+    const quickRefData = [
+        { fn: "select()", purpose: { bn: "Column নির্বাচন", en: "Select columns" }, example: `select(df, name, age)` },
+        { fn: "filter()", purpose: { bn: "Row filter", en: "Filter rows" }, example: `filter(df, age > 25)` },
+        { fn: "arrange()", purpose: { bn: "Row sort", en: "Sort rows" }, example: `arrange(df, age)` },
+        { fn: "mutate()", purpose: { bn: "Column তৈরি/modify", en: "Create/modify columns" }, example: `mutate(df, bonus = salary * .1)` },
+        { fn: "summarise()", purpose: { bn: "Summary statistics", en: "Summarize data" }, example: `summarise(df, avg = mean(x))` },
+        { fn: "group_by()", purpose: { bn: "Group data", en: "Group data" }, example: `group_by(df, dept)` },
+        { fn: "count()", purpose: { bn: "Observation count", en: "Count observations" }, example: `count(df, dept)` },
+        { fn: "distinct()", purpose: { bn: "Duplicate সরান", en: "Remove duplicates" }, example: `distinct(df, city)` },
+        { fn: "rename()", purpose: { bn: "Column rename", en: "Rename columns" }, example: `rename(df, name = full_name)` },
+        { fn: "slice()", purpose: { bn: "Row position select", en: "Select rows by position" }, example: `slice(df, 1:5)` },
+        { fn: "slice_head()", purpose: { bn: "প্রথম n row", en: "First n rows" }, example: `slice_head(df, n = 5)` },
+        { fn: "slice_tail()", purpose: { bn: "শেষ n row", en: "Last n rows" }, example: `slice_tail(df, n = 5)` },
+        { fn: "slice_min()", purpose: { bn: "সর্বনিম্ন value row", en: "Rows with min values" }, example: `slice_min(df, salary, n = 5)` },
+        { fn: "slice_max()", purpose: { bn: "সর্বোচ্চ value row", en: "Rows with max values" }, example: `slice_max(df, salary, n = 5)` },
+        { fn: "left_join()", purpose: { bn: "Left-এর সব row", en: "All rows from left" }, example: `left_join(x, y, by = "id")` },
+        { fn: "right_join()", purpose: { bn: "Right-এর সব row", en: "All rows from right" }, example: `right_join(x, y, by = "id")` },
+        { fn: "inner_join()", purpose: { bn: "Matching row", en: "Matching rows only" }, example: `inner_join(x, y, by = "id")` },
+        { fn: "full_join()", purpose: { bn: "উভয়ের সব row", en: "All rows from both" }, example: `full_join(x, y, by = "id")` },
+        { fn: "semi_join()", purpose: { bn: "Match থাকা left row", en: "Left rows with matches" }, example: `semi_join(x, y, by = "id")` },
+        { fn: "anti_join()", purpose: { bn: "Match নেই এমন left row", en: "Left rows without matches" }, example: `anti_join(x, y, by = "id")` },
+        { fn: "bind_rows()", purpose: { bn: "Row-wise stack", en: "Stack rows" }, example: `bind_rows(df1, df2)` },
+        { fn: "bind_cols()", purpose: { bn: "Column-wise combine", en: "Combine columns" }, example: `bind_cols(df1, df2)` },
+        { fn: "across()", purpose: { bn: "Multiple column-এ apply", en: "Apply across columns" }, example: `across(where(is.numeric), mean)` }
+    ];
+
+    /* ============================================================
+       STATE
+       ============================================================ */
+    let currentLang = localStorage.getItem("dplyr-lang") || "bn";
+    let currentCategory = "all";
+    let searchQuery = "";
+    let currentTheme = localStorage.getItem("dplyr-theme") || "light";
+
+    /* ============================================================
+       SYNTAX HIGHLIGHTING
+       ============================================================ */
+    function highlightR(code) {
+        if (!code) return "";
+        let html = code
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // Comments
+        html = html.replace(/(#.*)$/gm, '<span class="tok-comment">$1</span>');
+
+        // Strings
+        html = html.replace(/(["'])(.*?)\1/g, '<span class="tok-string">$1$2$1</span>');
+
+        // Numbers
+        html = html.replace(/\b(\d+\.?\d*)\b/g, '<span class="tok-number">$1</span>');
+
+        // Booleans / constants
+        html = html.replace(/\b(TRUE|FALSE|NULL|NA|Inf|NaN)\b/g, '<span class="tok-constant">$1</span>');
+
+        // Pipe operators
+        html = html.replace(/(\|&gt;|%&gt;%)/g, '<span class="tok-pipe">$1</span>');
+
+        // dplyr functions
+        const funcs = ["select","filter","arrange","mutate","summarise","summarize","group_by","ungroup","count","distinct","rename","relocate","slice","slice_head","slice_tail","slice_min","slice_max","slice_sample","left_join","right_join","inner_join","full_join","semi_join","anti_join","bind_rows","bind_cols","across","if_else","case_when","starts_with","ends_with","contains","matches","everything","last_col","desc","n","n_distinct"];
+        funcs.forEach(fn => {
+            const regex = new RegExp(`\\b(${fn})\\s*(?=\\()`, "g");
+            html = html.replace(regex, '<span class="tok-function">$1</span>');
+        });
+
+        // R base functions
+        const baseFuncs = ["mean","median","sum","min","max","sd","library","install.packages","c"];
+        baseFuncs.forEach(fn => {
+            const regex = new RegExp(`\\b(${fn.replace(".", "\\.")})\\s*(?=\\()`, "g");
+            html = html.replace(regex, '<span class="tok-function">$1</span>');
+        });
+
+        // Operators
+        html = html.replace(/(==|!=|&gt;=|&lt;=|&gt;|&lt;|~|&amp;|\|)/g, '<span class="tok-operator">$1</span>');
+
+        return html;
+    }
+
+    /* ============================================================
+       COPY CODE
+       ============================================================ */
+    function copyCode(btn) {
+        const codeBlock = btn.closest(".code-block");
+        const codeBody = codeBlock.querySelector(".code-body");
+        const text = codeBody.textContent;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.getAttribute("data-i18n") || "copy";
+            btn.classList.add("copied");
+            btn.textContent = translations[currentLang].copied;
+            setTimeout(() => {
+                btn.classList.remove("copied");
+                btn.textContent = translations[currentLang].copy;
+            }, 2000);
+        }).catch(() => {
+            // Fallback
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            btn.textContent = translations[currentLang].copied;
+            setTimeout(() => {
+                btn.textContent = translations[currentLang].copy;
+            }, 2000);
+        });
+    }
+
+    /* ============================================================
+       RENDER FUNCTION CARDS
+       ============================================================ */
+    function renderFunctionCards() {
+        const container = document.getElementById("functionContainer");
+        const t = translations[currentLang];
+
+        const filtered = functionData.filter(fn => {
+            const matchesCategory = currentCategory === "all" || fn.category === currentCategory;
+            if (!matchesCategory) return false;
+            if (!searchQuery) return true;
+
+            const q = searchQuery.toLowerCase();
+            const langData = fn[currentLang];
+            return (
+                fn.name.toLowerCase().includes(q) ||
+                langData.description.toLowerCase().includes(q) ||
+                langData.purpose.toLowerCase().includes(q) ||
+                langData.why.toLowerCase().includes(q) ||
+                langData.proTip.toLowerCase().includes(q) ||
+                fn.category.toLowerCase().includes(q) ||
+                fn.syntax.toLowerCase().includes(q)
+            );
+        });
+
+        // No results
+        document.getElementById("noResults").classList.toggle("visible", filtered.length === 0);
+
+        let html = "";
+
+        filtered.forEach(fn => {
+            const langData = fn[currentLang];
+            const catLabel = t["cat" + fn.category.charAt(0).toUpperCase() + fn.category.slice(1) + "Label"] || fn.category.toUpperCase();
+
+            html += `<article class="function-card" id="${fn.id}" data-category="${fn.category}">`;
+
+            // Header
+            html += `<div class="fc-header">
+                <div class="fc-name">${fn.name}</div>
+                <span class="fc-category">${catLabel}</span>
+            </div>`;
+
+            // Description
+            html += `<p class="fc-description">${langData.description}</p>`;
+
+            // Meta
+            html += `<div class="fc-meta">
+                <div class="fc-meta-item">
+                    <span class="label">${t.purposeLabel}</span>
+                    <strong>${langData.purpose}</strong>
+                </div>
+                <div class="fc-meta-item">
+                    <span class="label">${t.whyLabel}</span>
+                    <strong>${langData.why}</strong>
+                </div>
+            </div>`;
+
+            // Syntax
+            html += `<div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">R — ${t.syntaxLabel}</span>
+                    <button class="code-copy" onclick="copyCode(this)">${t.copy}</button>
+                </div>
+                <div class="code-body">${highlightR(fn.syntax)}</div>
+            </div>`;
+
+            // Code examples
+            if (fn.examples) {
+                fn.examples.forEach((ex, i) => {
+                    html += `<div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">R — ${ex.label}</span>
+                            <button class="code-copy" onclick="copyCode(this)">${t.copy}</button>
+                        </div>
+                        <div class="code-body">${highlightR(ex.code)}</div>
+                    </div>`;
+                });
+            }
+
+            // Helper functions for select
+            if (fn.helpers) {
+                html += `<div style="margin-top:12px;"><span class="label" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:6px;">Helpers</span>`;
+                fn.helpers.forEach(h => {
+                    html += `<div class="code-block" style="margin:6px 0;">
+                        <div class="code-header">
+                            <span class="code-lang">R</span>
+                            <button class="code-copy" onclick="copyCode(this)">${t.copy}</button>
+                        </div>
+                        <div class="code-body">${highlightR(h.code)}</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Aggregation functions for summarise
+            if (fn.aggFunctions) {
+                html += `<div style="margin-top:12px;">
+                    <span class="label" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:6px;">Common aggregation functions</span>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">`;
+                fn.aggFunctions.forEach(f => {
+                    html += `<span class="badge outline" style="font-family:var(--font-mono);font-size:0.75rem;">${f}</span>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // Operators for filter
+            if (fn.operators) {
+                html += `<div style="margin-top:12px;">
+                    <span class="label" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:6px;">Comparison Operators</span>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px;">`;
+                fn.operators.forEach(o => {
+                    html += `<div style="font-family:var(--font-mono);font-size:0.8rem;padding:4px 8px;background:var(--bg-tertiary);border-radius:4px;display:flex;gap:8px;">
+                        <span style="color:var(--accent);font-weight:700;min-width:32px;">${o.op}</span>
+                        <span style="color:var(--text-secondary);">${o.desc}</span>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // Output table
+            if (fn.output) {
+                html += `<div class="output-block">
+                    <div class="output-label">${t.outputLabel}</div>
+                    <div style="overflow-x:auto;">
+                    <table class="output-table">
+                        <thead><tr>`;
+                fn.output.headers.forEach(h => {
+                    html += `<th>${h}</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+                fn.output.rows.forEach(row => {
+                    html += `<tr>`;
+                    row.forEach(cell => {
+                        html += `<td>${cell}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div></div>`;
+            }
+
+            // Pro tip
+            html += `<div class="callout tip">
+                <span class="callout-icon">💡</span>
+                <span><strong>${t.proTipLabel}:</strong> ${langData.proTip}</span>
+            </div>`;
+
+            html += `</article>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    /* ============================================================
+       RENDER QUICK REFERENCE
+       ============================================================ */
+    function renderQuickRef() {
+        const tbody = document.getElementById("quickRefBody");
+        let html = "";
+        quickRefData.forEach(item => {
+            html += `<tr>
+                <td class="fn">${item.fn}</td>
+                <td>${item.purpose[currentLang]}</td>
+                <td><span class="code-inline">${item.example}</span></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    /* ============================================================
+       RENDER MISTAKES
+       ============================================================ */
+    function renderMistakes() {
+        const container = document.getElementById("mistakesContainer");
+        const t = translations[currentLang];
+        let html = "";
+        mistakesData.forEach(m => {
+            html += `<div class="mistake-card">
+                <h4>⚠️ ${t[m.key]}</h4>
+                <div class="mistake-pair">
+                    <div class="mistake-wrong">
+                        <div class="code-header">
+                            <span class="code-lang">❌ ${currentLang === "bn" ? "ভুল" : "Wrong"}</span>
+                        </div>
+                        <div class="code-body">${highlightR(m.wrong)}</div>
+                    </div>
+                    <div class="mistake-correct">
+                        <div class="code-header">
+                            <span class="code-lang">✅ ${currentLang === "bn" ? "সঠিক" : "Correct"}</span>
+                        </div>
+                        <div class="code-body">${highlightR(m.correct)}</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    /* ============================================================
+       RENDER TIPS
+       ============================================================ */
+    function renderTips() {
+        const container = document.getElementById("tipsContainer");
+        const t = translations[currentLang];
+        let html = "";
+        tipsData.forEach(tip => {
+            html += `<div class="callout tip" style="margin-bottom:10px;">
+                <span class="callout-icon" style="font-weight:800;font-family:var(--font-mono);">${tip.num}</span>
+                <span>${t[tip.key]}</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    /* ============================================================
+       LANGUAGE
+       ============================================================ */
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem("dplyr-lang", lang);
+        document.documentElement.lang = lang;
+
+        // Update toggle buttons
+        document.getElementById("langBn").classList.toggle("active", lang === "bn");
+        document.getElementById("langEn").classList.toggle("active", lang === "en");
+        document.getElementById("langBn").setAttribute("aria-pressed", lang === "bn");
+        document.getElementById("langEn").setAttribute("aria-pressed", lang === "en");
+
+        // Update all data-i18n elements
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (translations[lang][key]) {
+                // Preserve inner HTML elements (like icons)
+                const iconChild = el.querySelector(".icon, svg");
+                if (iconChild && el.children.length > 1) {
+                    const icon = el.children[0];
+                    el.textContent = translations[lang][key];
+                    el.prepend(icon);
+                } else {
+                    el.textContent = translations[lang][key];
+                }
+            }
+        });
+
+        // Update placeholders
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+            const key = el.getAttribute("data-i18n-placeholder");
+            if (translations[lang][key]) {
+                el.placeholder = translations[lang][key];
+            }
+        });
+
+        // Re-render dynamic content
+        renderFunctionCards();
+        renderQuickRef();
+        renderMistakes();
+        renderTips();
+
+        // Update copy buttons
+        document.querySelectorAll(".code-copy").forEach(btn => {
+            if (!btn.classList.contains("copied")) {
+                btn.textContent = translations[lang].copy;
+            }
+        });
+    }
+
+    /* ============================================================
+       THEME
+       ============================================================ */
+    function setTheme(theme) {
+        currentTheme = theme;
+        localStorage.setItem("dplyr-theme", theme);
+        document.documentElement.setAttribute("data-theme", theme);
+        document.getElementById("themeIconSun").style.display = theme === "light" ? "block" : "none";
+        document.getElementById("themeIconMoon").style.display = theme === "dark" ? "block" : "none";
+    }
+
+    function toggleTheme() {
+        setTheme(currentTheme === "light" ? "dark" : "light");
+    }
+
+    /* ============================================================
+       SEARCH & FILTER
+       ============================================================ */
+    function handleSearch(e) {
+        searchQuery = e.target.value.trim();
+        renderFunctionCards();
+    }
+
+    function handleCategoryFilter(cat) {
+        currentCategory = cat;
+        document.querySelectorAll(".cat-btn").forEach(btn => {
+            btn.classList.toggle("active", btn.getAttribute("data-cat") === cat);
+        });
+        renderFunctionCards();
+    }
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+    function scrollToFn(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            // Ensure it's visible (category filter might hide it)
+            if (el.classList.contains("hidden")) {
+                currentCategory = "all";
+                searchQuery = "";
+                document.getElementById("searchInput").value = "";
+                document.querySelectorAll(".cat-btn").forEach(btn => {
+                    btn.classList.toggle("active", btn.getAttribute("data-cat") === "all");
+                });
+                renderFunctionCards();
+                setTimeout(() => {
+                    document.getElementById(id).scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 50);
+            }
+        }
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ============================================================
+       PROGRESS BAR
+       ============================================================ */
+    function updateProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        document.getElementById("progressBar").style.width = progress + "%";
+
+        // Back to top button
+        document.getElementById("backToTop").classList.toggle("visible", scrollTop > 400);
+
+        // Sidebar active state
+        updateSidebarActive();
+    }
+
+    /* ============================================================
+       SIDEBAR ACTIVE
+       ============================================================ */
+    function updateSidebarActive() {
+        const sections = document.querySelectorAll(".section, .function-card[id]");
+        const sidebarLinks = document.querySelectorAll(".sidebar a");
+        let current = "";
+
+        sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= 150) {
+                current = section.id;
+            }
+        });
+
+        sidebarLinks.forEach(link => {
+            const href = link.getAttribute("href");
+            link.classList.toggle("active", href === "#" + current);
+        });
+    }
+
+    /* ============================================================
+       KEYBOARD SHORTCUTS
+       ============================================================ */
+    function handleKeyboard(e) {
+        // "/" to focus search
+        if (e.key === "/" && !e.target.closest("input, textarea")) {
+            e.preventDefault();
+            document.getElementById("searchInput").focus();
+        }
+
+        // Escape to clear search
+        if (e.key === "Escape") {
+            const searchInput = document.getElementById("searchInput");
+            searchInput.value = "";
+            searchQuery = "";
+            searchInput.blur();
+            renderFunctionCards();
+        }
+    }
+
+    /* ============================================================
+       MOBILE MENU
+       ============================================================ */
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById("sidebar");
+        const btn = document.getElementById("mobileMenuBtn");
+        sidebar.classList.toggle("open");
+        btn.setAttribute("aria-expanded", sidebar.classList.contains("open"));
+    }
+
+    /* ============================================================
+       INIT
+       ============================================================ */
+    function init() {
+        // Set theme
+        setTheme(currentTheme);
+
+        // Set language (default bn)
+        setLanguage(currentLang);
+
+        // Render dynamic content
+        renderFunctionCards();
+        renderQuickRef();
+        renderMistakes();
+        renderTips();
+
+        // Event listeners
+        document.getElementById("searchInput").addEventListener("input", handleSearch);
+        document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+        document.getElementById("mobileMenuBtn").addEventListener("click", toggleMobileMenu);
+
+        // Category filter buttons
+        document.querySelectorAll(".cat-btn").forEach(btn => {
+            btn.addEventListener("click", () => handleCategoryFilter(btn.getAttribute("data-cat")));
+        });
+
+        // Sidebar links (smooth scroll)
+        document.querySelectorAll('.sidebar a[href^="#"]').forEach(link => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute("href"));
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                    // Close mobile sidebar
+                    document.getElementById("sidebar").classList.remove("open");
+                    document.getElementById("mobileMenuBtn").setAttribute("aria-expanded", "false");
+                }
+            });
+        });
+
+        // Header nav links
+        document.querySelectorAll('.header-nav a[href^="#"]').forEach(link => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute("href"));
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            });
+        });
+
+        // Scroll events
+        window.addEventListener("scroll", updateProgress, { passive: true });
+
+        // Keyboard
+        document.addEventListener("keydown", handleKeyboard);
+
+        // Initial progress
+        updateProgress();
+    }
+
+    // Run on DOM ready
+    document.addEventListener("DOMContentLoaded", init);
+
+    </script>
+</body>
+</html>
